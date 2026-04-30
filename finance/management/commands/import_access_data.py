@@ -29,6 +29,26 @@ def parse_decimal(value):
     return Decimal(str(value).replace("$", "").replace(",", "").strip())
 
 
+def normalize_key(value):
+    return str(value).strip().replace("-", " ").replace("_", " ").lower()
+
+
+def normalize_choice(value, choices, field_name):
+    lookup = {}
+    for database_value, display_value in choices:
+        lookup[normalize_key(database_value)] = database_value
+        lookup[normalize_key(display_value)] = database_value
+    key = normalize_key(value)
+    if key not in lookup:
+        valid_values = ", ".join(display for _, display in choices)
+        raise CommandError(f"Unsupported {field_name}: {value}. Expected one of: {valid_values}")
+    return lookup[key]
+
+
+def parse_bool(value):
+    return normalize_key(value) in {"true", "yes", "y", "1", "submitted"}
+
+
 class Command(BaseCommand):
     help = "Import CSV files exported from the Access database into the Django SQLite database."
 
@@ -67,7 +87,11 @@ class Command(BaseCommand):
                     "email": row["Email"],
                     "major": row["Major"],
                     "gpa": parse_decimal(row["GPA"]),
-                    "enrollment_status": row["EnrollmentStatus"],
+                    "enrollment_status": normalize_choice(
+                        row["EnrollmentStatus"],
+                        Student.EnrollmentStatus.choices,
+                        "enrollment status",
+                    ),
                 },
             )
 
@@ -99,10 +123,14 @@ class Command(BaseCommand):
                 scholarship_id=row["ScholarshipID"],
                 defaults={
                     "scholarship_name": row["ScholarshipName"],
-                    "award_type": row["AwardType"],
+                    "award_type": normalize_choice(row["AwardType"], Scholarship.AwardType.choices, "award type"),
                     "award_amount": parse_decimal(row["AwardAmount"]),
                     "gpa_requirement": parse_decimal(row["GPARequirement"]),
-                    "enrollment_requirement": row["EnrollmentRequirement"],
+                    "enrollment_requirement": normalize_choice(
+                        row["EnrollmentRequirement"],
+                        Student.EnrollmentStatus.choices,
+                        "enrollment requirement",
+                    ),
                 },
             )
 
@@ -125,7 +153,7 @@ class Command(BaseCommand):
                     "student_id": row["StudentID"],
                     "payment_date": parse_date(row["PaymentDate"]),
                     "amount": parse_decimal(row["Amount"]),
-                    "method": row["Method"],
+                    "method": normalize_choice(row["Method"], Payment.Method.choices, "payment method"),
                     "receipt_no": row["ReceiptNo"],
                 },
             )
@@ -139,7 +167,7 @@ class Command(BaseCommand):
                     "scholarship_id": row["ScholarshipID"],
                     "administrator_id": row.get("AdminID") or None,
                     "application_date": parse_date(row["ApplicationDate"]),
-                    "docs_submitted": row["DocsSubmitted"].strip().lower() in {"true", "yes", "1"},
-                    "status": row["Status"],
+                    "docs_submitted": parse_bool(row["DocsSubmitted"]),
+                    "status": normalize_choice(row["Status"], AidApplication.Status.choices, "application status"),
                 },
             )

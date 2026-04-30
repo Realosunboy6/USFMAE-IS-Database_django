@@ -5,6 +5,19 @@
 {% block content %}
 <h2>Students</h2>
 <section class="card">
+  <form method="get">
+    <p>
+      <label for="student-search">Search students</label>
+      <input id="student-search" type="search" name="q" value="{{ query }}" placeholder="Name, email, or major">
+    </p>
+    <button type="submit">Search</button>
+    {% if query %}
+    <a class="button" href="{% url 'finance:student_list' %}">Clear</a>
+    {% endif %}
+  </form>
+</section>
+
+<section class="card">
   <table>
     <thead>
       <tr><th>Name</th><th>Email</th><th>Major</th><th>GPA</th><th>Status</th></tr>
@@ -23,5 +36,17 @@
       {% endfor %}
     </tbody>
   </table>
+
+  {% if is_paginated %}
+  <p>
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+    {% endif %}
+    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+    {% endif %}
+  </p>
+  {% endif %}
 </section>
 {% endblock %}
