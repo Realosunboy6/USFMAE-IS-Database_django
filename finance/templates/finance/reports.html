@@ -3,65 +3,77 @@
 {% block title %}Reports | USFMAE-IS{% endblock %}
 
 {% block content %}
-<h2>Reports</h2>
+<div class="page-header">
+  <div>
+    <div class="page-kicker">Reporting</div>
+    <h2>Reports</h2>
+    <p class="page-subtitle">Review balances, payment activity, and aid status for administrative decisions.</p>
+  </div>
+</div>
 
 <section class="card">
-  <h3>Balance Report</h3>
-  <table>
-    <thead><tr><th>Student</th><th>Total Charges</th><th>Total Payments</th><th>Current Balance</th></tr></thead>
-    <tbody>
-      {% for row in balance_report %}
-      <tr>
-        <td>{{ row.student }}</td>
-        <td>${{ row.total_charges }}</td>
-        <td>${{ row.total_payments }}</td>
-        <td>${{ row.current_balance }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="4">No students are available for reporting.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="card-header"><h3>Balance Report</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Total Charges</th><th>Total Payments</th><th>Current Balance</th></tr></thead>
+      <tbody>
+        {% for row in balance_report %}
+        <tr>
+          <td>{{ row.student }}</td>
+          <td class="money">${{ row.total_charges }}</td>
+          <td class="money">${{ row.total_payments }}</td>
+          <td class="money">${{ row.current_balance }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No students are available for reporting.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="card">
-  <h3>Payment Summary</h3>
-  <table>
-    <thead><tr><th>Student</th><th>Date</th><th>Amount</th><th>Method</th><th>Receipt</th></tr></thead>
-    <tbody>
-      {% for payment in payment_report %}
-      <tr>
-        <td>{{ payment.student }}</td>
-        <td>{{ payment.payment_date }}</td>
-        <td>${{ payment.amount }}</td>
-        <td>{{ payment.get_method_display }}</td>
-        <td>{{ payment.receipt_no }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5">No payments are available for reporting.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="card-header"><h3>Payment Summary</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Date</th><th>Amount</th><th>Method</th><th>Receipt</th></tr></thead>
+      <tbody>
+        {% for payment in payment_report %}
+        <tr>
+          <td>{{ payment.student }}</td>
+          <td>{{ payment.payment_date }}</td>
+          <td class="money">${{ payment.amount }}</td>
+          <td>{{ payment.get_method_display }}</td>
+          <td>{{ payment.receipt_no }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No payments are available for reporting.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 
 <section class="card">
-  <h3>Aid Status Report</h3>
-  <table>
-    <thead><tr><th>Student</th><th>Scholarship</th><th>Date</th><th>Documents</th><th>Status</th><th>Reviewer</th></tr></thead>
-    <tbody>
-      {% for application in aid_report %}
-      <tr>
-        <td>{{ application.student }}</td>
-        <td>{{ application.scholarship }}</td>
-        <td>{{ application.application_date }}</td>
-        <td>{{ application.docs_submitted|yesno:"Submitted,Missing" }}</td>
-        <td>{{ application.get_status_display }}</td>
-        <td>{{ application.administrator|default:"Unassigned" }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="6">No aid applications are available for reporting.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="card-header"><h3>Aid Status Report</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Scholarship</th><th>Date</th><th>Documents</th><th>Status</th><th>Reviewer</th></tr></thead>
+      <tbody>
+        {% for application in aid_report %}
+        <tr>
+          <td>{{ application.student }}</td>
+          <td>{{ application.scholarship }}</td>
+          <td>{{ application.application_date }}</td>
+          <td><span class="badge {% if application.docs_submitted %}badge-success{% else %}badge-warning{% endif %}">{{ application.docs_submitted|yesno:"Submitted,Missing" }}</span></td>
+          <td><span class="badge badge-neutral">{{ application.get_status_display }}</span></td>
+          <td>{{ application.administrator|default:"Unassigned" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No aid applications are available for reporting.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </section>
 {% endblock %}

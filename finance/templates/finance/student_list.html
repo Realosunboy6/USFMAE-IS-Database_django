@@ -3,7 +3,14 @@
 {% block title %}Students | USFMAE-IS{% endblock %}
 
 {% block content %}
-<h2>Students</h2>
+<div class="page-header">
+  <div>
+    <div class="page-kicker">Records</div>
+    <h2>Students</h2>
+    <p class="page-subtitle">Search student finance profiles by name, email, or major.</p>
+  </div>
+</div>
+
 <section class="card">
   <form method="get">
     <p>
@@ -12,39 +19,45 @@
     </p>
     <button type="submit">Search</button>
     {% if query %}
-    <a class="button" href="{% url 'finance:student_list' %}">Clear</a>
+    <a class="button button-secondary" href="{% url 'finance:student_list' %}">Clear</a>
     {% endif %}
   </form>
 </section>
 
 <section class="card">
-  <table>
-    <thead>
-      <tr><th>Name</th><th>Email</th><th>Major</th><th>GPA</th><th>Status</th></tr>
-    </thead>
-    <tbody>
-      {% for student in students %}
-      <tr>
-        <td><a href="{{ student.get_absolute_url }}">{{ student }}</a></td>
-        <td>{{ student.email }}</td>
-        <td>{{ student.major }}</td>
-        <td>{{ student.gpa }}</td>
-        <td>{{ student.get_enrollment_status_display }}</td>
-      </tr>
-      {% empty %}
-      <tr><td colspan="5">No students have been added yet.</td></tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="card-header">
+    <h3>Student Directory</h3>
+    <span class="muted">Page results are limited to 25 students.</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Name</th><th>Email</th><th>Major</th><th>GPA</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for student in students %}
+        <tr>
+          <td><a href="{{ student.get_absolute_url }}">{{ student }}</a></td>
+          <td>{{ student.email }}</td>
+          <td>{{ student.major }}</td>
+          <td>{{ student.gpa }}</td>
+          <td><span class="badge badge-neutral">{{ student.get_enrollment_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No students have been added yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 
   {% if is_paginated %}
-  <p>
+  <p class="pagination">
     {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
+    <a class="button button-secondary" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">Previous</a>
     {% endif %}
-    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
+    <a class="button button-secondary" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">Next</a>
     {% endif %}
   </p>
   {% endif %}
