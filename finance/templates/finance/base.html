@@ -5,86 +5,417 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}USFMAE-IS{% endblock %}</title>
   <style>
+    :root {
+      --bg: #f4f7fb;
+      --surface: #ffffff;
+      --surface-soft: #f8fafc;
+      --text: #172033;
+      --muted: #667085;
+      --line: #d9e2ec;
+      --line-soft: #edf2f7;
+      --brand: #0f3d5e;
+      --brand-strong: #0b2f49;
+      --accent: #0b75bd;
+      --accent-soft: #e6f4ff;
+      --success: #0f766e;
+      --success-soft: #e6fffb;
+      --warning: #a16207;
+      --warning-soft: #fff7e6;
+      --danger: #b42318;
+      --danger-soft: #fff1f0;
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      color: #1f2933;
-      background: #f5f7fa;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(11, 117, 189, 0.12), transparent 34rem),
+        var(--bg);
+      line-height: 1.5;
     }
+
     header {
-      background: #102a43;
+      background: linear-gradient(135deg, var(--brand), var(--brand-strong));
       color: white;
-      padding: 1rem 2rem;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.16);
     }
+
+    .topbar {
+      align-items: center;
+      display: flex;
+      gap: 1.5rem;
+      justify-content: space-between;
+      margin: 0 auto;
+      max-width: 1180px;
+    }
+
+    .brand {
+      display: grid;
+      gap: 0.15rem;
+    }
+
+    .brand h1 {
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+
+    .brand span {
+      color: #cfe8f8;
+      font-size: 0.85rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      justify-content: flex-end;
+    }
+
     nav a {
       color: white;
-      margin-right: 1rem;
+      border-radius: 999px;
+      font-size: 0.92rem;
+      padding: 0.45rem 0.75rem;
+      text-decoration: none;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    nav a:hover {
+      background: rgba(255, 255, 255, 0.14);
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 2rem auto 3rem;
+      padding: 0 1.25rem;
+    }
+
+    a {
+      color: var(--accent);
+      font-weight: 650;
       text-decoration: none;
     }
-    main {
-      max-width: 1100px;
-      margin: 2rem auto;
-      padding: 0 1rem;
+
+    a:hover {
+      text-decoration: underline;
     }
-    .card {
-      background: white;
-      border: 1px solid #d9e2ec;
-      border-radius: 8px;
+
+    h2 {
+      font-size: 1.8rem;
+      letter-spacing: -0.03em;
+      margin: 0;
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      margin: 0 0 0.9rem;
+    }
+
+    p {
+      margin: 0.35rem 0;
+    }
+
+    .page-header {
+      align-items: flex-start;
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
       margin-bottom: 1.25rem;
-      padding: 1rem;
     }
+
+    .page-kicker {
+      color: var(--accent);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.25rem;
+      text-transform: uppercase;
+    }
+
+    .page-subtitle {
+      color: var(--muted);
+      margin-top: 0.35rem;
+      max-width: 720px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line-soft);
+      border-radius: var(--radius);
+      margin-bottom: 1.25rem;
+      padding: 1.25rem;
+      box-shadow: 0 16px 40px rgba(15, 61, 94, 0.08);
+    }
+
+    .card-header {
+      align-items: center;
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .card-header h3 {
+      margin: 0;
+    }
+
     .grid {
       display: grid;
       gap: 1rem;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     }
+
+    .stat-card {
+      border-left: 4px solid var(--accent);
+      min-height: 120px;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      color: var(--brand-strong);
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-top: 0.45rem;
+    }
+
+    .table-wrap {
+      border: 1px solid var(--line-soft);
+      border-radius: 12px;
+      overflow: auto;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      background: white;
+      background: var(--surface);
     }
+
     th, td {
-      border-bottom: 1px solid #d9e2ec;
-      padding: 0.65rem;
+      border-bottom: 1px solid var(--line-soft);
+      padding: 0.78rem 0.85rem;
       text-align: left;
+      vertical-align: middle;
     }
+
     th {
-      background: #eef2f7;
+      background: var(--surface-soft);
+      color: #42526e;
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      white-space: nowrap;
     }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    tbody tr:hover {
+      background: #fbfdff;
+    }
+
+    .money {
+      font-variant-numeric: tabular-nums;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .profile-list {
+      display: grid;
+      gap: 0.75rem;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    }
+
+    .profile-item {
+      background: var(--surface-soft);
+      border: 1px solid var(--line-soft);
+      border-radius: 12px;
+      padding: 0.9rem;
+    }
+
+    .profile-item span {
+      color: var(--muted);
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .profile-item strong {
+      display: block;
+      margin-top: 0.25rem;
+    }
+
+    .badge {
+      border-radius: 999px;
+      display: inline-block;
+      font-size: 0.78rem;
+      font-weight: 800;
+      padding: 0.28rem 0.62rem;
+      white-space: nowrap;
+    }
+
+    .badge-neutral {
+      background: #eef2f7;
+      color: #334e68;
+    }
+
+    .badge-success {
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .badge-warning {
+      background: var(--warning-soft);
+      color: var(--warning);
+    }
+
+    .badge-danger {
+      background: var(--danger-soft);
+      color: var(--danger);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
     form p {
       display: grid;
       gap: 0.35rem;
-      max-width: 420px;
+      margin: 0 0 0.9rem;
+      max-width: 520px;
     }
+
+    label {
+      color: #344054;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
     input, select {
-      padding: 0.5rem;
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      color: var(--text);
+      font: inherit;
+      padding: 0.62rem 0.72rem;
+      width: 100%;
     }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      outline: 3px solid rgba(11, 117, 189, 0.16);
+    }
+
     button, .button {
-      background: #0b69a3;
+      background: var(--accent);
       border: 0;
-      border-radius: 4px;
+      border-radius: 10px;
       color: white;
       display: inline-block;
-      padding: 0.55rem 0.85rem;
+      font: inherit;
+      font-weight: 800;
+      padding: 0.62rem 0.95rem;
       text-decoration: none;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    button:hover, .button:hover {
+      background: #095f99;
+      text-decoration: none;
+      transform: translateY(-1px);
+    }
+
+    .button-secondary {
+      background: #eef2f7;
+      color: #334e68;
+    }
+
+    .button-secondary:hover {
+      background: #dbe4ee;
+    }
+
+    .pagination {
+      align-items: center;
+      color: var(--muted);
+      display: flex;
+      gap: 0.8rem;
+      justify-content: flex-end;
+      margin-top: 1rem;
+    }
+
+    footer {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 2rem;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      header {
+        padding: 1rem;
+      }
+
+      .topbar, .page-header {
+        display: grid;
+      }
+
+      nav {
+        justify-content: flex-start;
+      }
+
+      main {
+        margin-top: 1.25rem;
+        padding: 0 0.85rem;
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>USFMAE-IS</h1>
-    <nav>
-      <a href="{% url 'finance:dashboard' %}">Dashboard</a>
-      <a href="{% url 'finance:student_list' %}">Students</a>
-      <a href="{% url 'finance:charges' %}">Charges</a>
-      <a href="{% url 'finance:payments' %}">Payments</a>
-      <a href="{% url 'finance:aid_applications' %}">Aid Applications</a>
-      <a href="{% url 'finance:reports' %}">Reports</a>
-      <a href="/admin/">Django Admin</a>
-    </nav>
+    <div class="topbar">
+      <div class="brand">
+        <h1>USFMAE-IS</h1>
+        <span>Student Finance and Aid Eligibility Portal</span>
+      </div>
+      <nav>
+        <a href="{% url 'finance:dashboard' %}">Dashboard</a>
+        <a href="{% url 'finance:student_list' %}">Students</a>
+        <a href="{% url 'finance:charges' %}">Charges</a>
+        <a href="{% url 'finance:payments' %}">Payments</a>
+        <a href="{% url 'finance:aid_applications' %}">Aid</a>
+        <a href="{% url 'finance:reports' %}">Reports</a>
+        <a href="/admin/">Admin</a>
+      </nav>
+    </div>
   </header>
   <main>
     {% block content %}{% endblock %}
+    <footer>USFMAE-IS class project prototype for student finance transparency and aid review.</footer>
   </main>
 </body>
 </html>
