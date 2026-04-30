@@ -73,6 +73,14 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
+Load demo data for a quick class-project walkthrough:
+
+```bash
+python manage.py seed_demo_data
+```
+
+This loads the original small demo records plus 100 Nigerian sample students with charges, payments, and aid applications.
+
 Create an admin user:
 
 ```bash
@@ -89,6 +97,25 @@ Open:
 
 - Main app: `http://127.0.0.1:8000/`
 - Admin: `http://127.0.0.1:8000/admin/`
+
+## Already Prepared Locally
+
+This project has already been checked locally with:
+
+```bash
+.venv/bin/python manage.py check
+.venv/bin/python manage.py test
+.venv/bin/python manage.py migrate --noinput
+.venv/bin/python manage.py seed_demo_data
+```
+
+To run it later from the prepared environment:
+
+```bash
+cd /Users/isye/Downloads/usfmae_django
+source .venv/bin/activate
+python manage.py runserver
+```
 
 ## Importing Data From Access
 
@@ -123,7 +150,7 @@ Expected column names follow the class schema:
 ## Views Included
 
 - Dashboard with totals and pending applications.
-- Student list and student financial profile.
+- Searchable, paginated student list and student financial profile.
 - Charge assignment.
 - Payment recording and history.
 - Aid application submission.

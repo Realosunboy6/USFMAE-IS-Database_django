@@ -7,7 +7,7 @@ SECRET_KEY = "dev-only-usfmae-django-secret-key"
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "testserver"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
