@@ -1,162 +1,152 @@
-# USFMAE-IS Django Project
+# USFMAE-IS Database
 
-University Student Financial Management & Aid Eligibility Information System (USFMAE-IS) is a Django version of the class project Access database prototype.
+USFMAE-IS means **University Student Financial Management & Aid Eligibility Information System**. This database supports a student finance system for tracking tuition charges, payments, student balances, scholarships, financial aid applications, and administrator reviews.
 
-The project solves a practical student finance problem: students need a clear place to see tuition charges, payments, current balance, and aid status, while administrators need faster tools for recording payments, reviewing aid applications, and generating reports.
+The purpose of the database is to give students and administrators one organized place to manage student financial information. Students can understand what they owe, what they have paid, and the status of their aid applications. Administrators can record charges, verify payments, review aid requests, and prepare useful financial reports.
 
-## Source Database
+## Database Purpose
 
-The original files are in:
+This database is designed to solve a common university problem: student financial information is often spread across different records, making it difficult for students to understand their balance and difficult for staff to review aid applications efficiently.
 
-```text
-/Users/isye/Downloads/DATABASE
-```
+USFMAE-IS organizes that information into connected tables so the system can answer questions such as:
 
-Detected Access files:
+- Which students have outstanding balances?
+- What charges have been assigned to each student?
+- What payments has each student made?
+- Which students submitted aid applications?
+- Which applications are pending, approved, denied, or missing documents?
+- Which students meet the basic scholarship eligibility rules?
 
-- `OYELAB1.accdb`
-- `OYELAB2.accdb`
-- `OYELAB4.accdb`
+## Main Tables
 
-The Django schema is based on the normalized class-project documents in the same folder. Direct `.accdb` inspection requires Access-compatible tooling such as `mdbtools`, ODBC, Microsoft Access, or export to CSV.
+### Student
 
-## Data Model
+Stores student profile information used for financial tracking and aid review.
 
-The Django app maps the documented 3NF schema:
+Fields include:
 
-- `Student`
-- `Payment`
-- `FeeCategory`
-- `StudentCharge` for the Access relation `IsCharged`
-- `Scholarship`
-- `AidApplication`
-- `Administrator`
+- Student ID
+- First name
+- Last name
+- Email
+- Major
+- GPA
+- Enrollment status
 
-## Project Structure
+### Fee Category
 
-```text
-usfmae_django/
-  manage.py
-  requirements.txt
-  README.md
-  usfmae_django/
-    settings.py
-    urls.py
-    asgi.py
-    wsgi.py
-  finance/
-    models.py
-    admin.py
-    forms.py
-    services.py
-    views.py
-    urls.py
-    management/commands/import_access_data.py
-    templates/finance/
-```
+Stores the types of fees that can be charged to students.
 
-## Setup
+Fields include:
 
-Create and activate a virtual environment:
+- Fee ID
+- Fee name
+- Standard amount
+- Semester
+
+### Student Charge
+
+Connects students to the fees they have been charged. This table represents the relationship between a student and a fee category.
+
+Fields include:
+
+- Student
+- Fee category
+- Charge amount
+- Due date
+
+### Payment
+
+Stores payments made by students.
+
+Fields include:
+
+- Payment ID
+- Student
+- Payment date
+- Amount
+- Payment method
+- Receipt number
+
+### Scholarship
+
+Stores scholarship or financial aid program information.
+
+Fields include:
+
+- Scholarship ID
+- Scholarship name
+- Award type
+- Award amount
+- GPA requirement
+- Enrollment requirement
+
+### Aid Application
+
+Stores student applications for scholarships or financial aid.
+
+Fields include:
+
+- Application ID
+- Student
+- Scholarship
+- Application date
+- Documents submitted
+- Application status
+- Reviewing administrator
+
+### Administrator
+
+Stores administrator information for staff who review aid applications.
+
+Fields include:
+
+- Admin ID
+- First name
+- Last name
+- Role
+
+## Relationships
+
+The database uses these main relationships:
+
+- One student can have many payments.
+- One student can have many assigned charges.
+- One fee category can be assigned to many students.
+- One student can submit many aid applications.
+- One scholarship can have many aid applications.
+- One administrator can review many aid applications.
+
+## Reports Supported
+
+The database supports important student finance reports:
+
+- Student balance report
+- Payment summary report
+- Aid application status report
+- Scholarship eligibility review
+- Student financial profile
+
+## Sample Data
+
+The database includes sample data for demonstration. The sample records include students, fee charges, payments, scholarships, and aid applications. The student sample data uses distinct Nigerian names so the demonstration looks realistic and professional.
+
+## Running The Project
+
+Start the Django app with:
 
 ```bash
 cd /Users/isye/Downloads/usfmae_django
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-Create the database tables:
-
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-Load demo data for a quick class-project walkthrough:
-
-```bash
-python manage.py seed_demo_data
-```
-
-This loads the original small demo records plus 100 Nigerian sample students with charges, payments, and aid applications.
-
-Create an admin user:
-
-```bash
-python manage.py createsuperuser
-```
-
-Run the development server:
-
-```bash
-python manage.py runserver
-```
-
-Open:
-
-- Main app: `http://127.0.0.1:8000/`
-- Admin: `http://127.0.0.1:8000/admin/`
-
-## Already Prepared Locally
-
-This project has already been checked locally with:
-
-```bash
-.venv/bin/python manage.py check
-.venv/bin/python manage.py test
-.venv/bin/python manage.py migrate --noinput
-.venv/bin/python manage.py seed_demo_data
-```
-
-To run it later from the prepared environment:
-
-```bash
-cd /Users/isye/Downloads/usfmae_django
 source .venv/bin/activate
 python manage.py runserver
 ```
 
-## Importing Data From Access
-
-If Microsoft Access or another tool can export the tables to CSV, use these filenames:
+Then open:
 
 ```text
-Student.csv
-Administrator.csv
-FeeCategory.csv
-Scholarship.csv
-IsCharged.csv
-Payment.csv
-AidApplication.csv
+http://127.0.0.1:8000/
 ```
 
-Then run:
+## Scope
 
-```bash
-python manage.py import_access_data /path/to/exported/csvs
-```
-
-Expected column names follow the class schema:
-
-- `StudentID`, `FirstName`, `LastName`, `Email`, `Major`, `GPA`, `EnrollmentStatus`
-- `PaymentID`, `PaymentDate`, `Amount`, `Method`, `ReceiptNo`, `StudentID`
-- `FeeID`, `FeeName`, `StandardAmount`, `Semester`
-- `StudentID`, `FeeID`, `Amount`, `DueDate`
-- `ScholarshipID`, `ScholarshipName`, `AwardType`, `AwardAmount`, `GPARequirement`, `EnrollmentRequirement`
-- `ApplicationID`, `ApplicationDate`, `DocsSubmitted`, `Status`, `StudentID`, `ScholarshipID`, `AdminID`
-- `AdminID`, `FirstName`, `LastName`, `Role`
-
-## Views Included
-
-- Dashboard with totals and pending applications.
-- Searchable, paginated student list and student financial profile.
-- Charge assignment.
-- Payment recording and history.
-- Aid application submission.
-- Administrator aid review.
-- Balance, payment, and aid status reports.
-
-## Scope Note
-
-The aid eligibility helper is intentionally simplified for a class project. It checks GPA, enrollment status, and document submission. It should not be presented as an official financial aid determination engine.
+This is a class project database prototype. The aid eligibility feature uses simple rules based on GPA, enrollment status, and document submission. It is meant to support basic review and reporting, not replace a full official university financial aid system.
