@@ -1,0 +1,39 @@
+{% extends "finance/base.html" %}
+
+{% block title %}Aid Applications | USFMAE-IS{% endblock %}
+
+{% block content %}
+<h2>Aid Applications</h2>
+<section class="card">
+  <h3>Submit Aid Application</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit Application</button>
+  </form>
+</section>
+
+<section class="card">
+  <h3>Application Status</h3>
+  <table>
+    <thead>
+      <tr><th>Student</th><th>Scholarship</th><th>Date</th><th>Documents</th><th>Status</th><th>Eligible?</th><th>Review</th></tr>
+    </thead>
+    <tbody>
+      {% for application in applications %}
+      <tr>
+        <td>{{ application.student }}</td>
+        <td>{{ application.scholarship }}</td>
+        <td>{{ application.application_date }}</td>
+        <td>{{ application.docs_submitted|yesno:"Submitted,Missing" }}</td>
+        <td>{{ application.get_status_display }}</td>
+        <td>{{ application.meets_basic_eligibility|yesno:"Yes,No" }}</td>
+        <td><a class="button" href="{% url 'finance:aid_review' application.application_id %}">Review</a></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7">No aid applications have been submitted.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

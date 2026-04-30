@@ -1,0 +1,79 @@
+{% extends "finance/base.html" %}
+
+{% block title %}{{ student }} | USFMAE-IS{% endblock %}
+
+{% block content %}
+<h2>{{ student }}</h2>
+
+<section class="grid">
+  <div class="card"><h3>Total Charges</h3><p>${{ summary.total_charges }}</p></div>
+  <div class="card"><h3>Total Payments</h3><p>${{ summary.total_payments }}</p></div>
+  <div class="card"><h3>Current Balance</h3><p>${{ summary.current_balance }}</p></div>
+</section>
+
+<section class="card">
+  <h3>Profile</h3>
+  <p>Email: {{ student.email }}</p>
+  <p>Major: {{ student.major }}</p>
+  <p>GPA: {{ student.gpa }}</p>
+  <p>Enrollment: {{ student.get_enrollment_status_display }}</p>
+</section>
+
+<section class="card">
+  <h3>Charges</h3>
+  <table>
+    <thead><tr><th>Fee</th><th>Semester</th><th>Amount</th><th>Due Date</th></tr></thead>
+    <tbody>
+      {% for charge in charges %}
+      <tr>
+        <td>{{ charge.fee.fee_name }}</td>
+        <td>{{ charge.fee.semester }}</td>
+        <td>${{ charge.amount }}</td>
+        <td>{{ charge.due_date }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No charges recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h3>Payment History</h3>
+  <table>
+    <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Receipt</th></tr></thead>
+    <tbody>
+      {% for payment in payments %}
+      <tr>
+        <td>{{ payment.payment_date }}</td>
+        <td>${{ payment.amount }}</td>
+        <td>{{ payment.get_method_display }}</td>
+        <td>{{ payment.receipt_no }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No payments recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h3>Aid Applications</h3>
+  <table>
+    <thead><tr><th>Scholarship</th><th>Date</th><th>Documents</th><th>Status</th><th>Eligible?</th></tr></thead>
+    <tbody>
+      {% for application in applications %}
+      <tr>
+        <td>{{ application.scholarship }}</td>
+        <td>{{ application.application_date }}</td>
+        <td>{{ application.docs_submitted|yesno:"Submitted,Missing" }}</td>
+        <td>{{ application.get_status_display }}</td>
+        <td>{{ application.meets_basic_eligibility|yesno:"Yes,No" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No aid applications recorded.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

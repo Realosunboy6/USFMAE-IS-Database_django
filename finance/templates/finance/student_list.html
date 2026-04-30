@@ -1,0 +1,27 @@
+{% extends "finance/base.html" %}
+
+{% block title %}Students | USFMAE-IS{% endblock %}
+
+{% block content %}
+<h2>Students</h2>
+<section class="card">
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Email</th><th>Major</th><th>GPA</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for student in students %}
+      <tr>
+        <td><a href="{{ student.get_absolute_url }}">{{ student }}</a></td>
+        <td>{{ student.email }}</td>
+        <td>{{ student.major }}</td>
+        <td>{{ student.gpa }}</td>
+        <td>{{ student.get_enrollment_status_display }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">No students have been added yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

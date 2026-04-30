@@ -1,0 +1,26 @@
+{% extends "finance/base.html" %}
+
+{% block title %}Review Aid Application | USFMAE-IS{% endblock %}
+
+{% block content %}
+<h2>Review Aid Application</h2>
+
+<section class="card">
+  <h3>{{ application.student }} - {{ application.scholarship }}</h3>
+  <p>Application date: {{ application.application_date }}</p>
+  <p>Student GPA: {{ application.student.gpa }}</p>
+  <p>Required GPA: {{ application.scholarship.gpa_requirement }}</p>
+  <p>Student enrollment: {{ application.student.get_enrollment_status_display }}</p>
+  <p>Required enrollment: {{ application.scholarship.get_enrollment_requirement_display }}</p>
+  <p>Basic eligibility: {{ application.meets_basic_eligibility|yesno:"Meets requirements,Does not meet requirements" }}</p>
+</section>
+
+<section class="card">
+  <h3>Update Review</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Review</button>
+  </form>
+</section>
+{% endblock %}

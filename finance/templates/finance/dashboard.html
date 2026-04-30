@@ -1,0 +1,68 @@
+{% extends "finance/base.html" %}
+
+{% block title %}Dashboard | USFMAE-IS{% endblock %}
+
+{% block content %}
+<h2>Student Finance Dashboard</h2>
+
+<section class="grid">
+  <div class="card">
+    <h3>Students</h3>
+    <p>{{ metrics.student_count }}</p>
+  </div>
+  <div class="card">
+    <h3>Total Charges</h3>
+    <p>${{ metrics.total_charges }}</p>
+  </div>
+  <div class="card">
+    <h3>Total Payments</h3>
+    <p>${{ metrics.total_payments }}</p>
+  </div>
+  <div class="card">
+    <h3>Outstanding Balance</h3>
+    <p>${{ metrics.total_balance }}</p>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Students</h3>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Major</th><th>GPA</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for student in students %}
+      <tr>
+        <td><a href="{{ student.get_absolute_url }}">{{ student }}</a></td>
+        <td>{{ student.major }}</td>
+        <td>{{ student.gpa }}</td>
+        <td>{{ student.get_enrollment_status_display }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No students have been added yet.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section class="card">
+  <h3>Pending Aid Applications</h3>
+  <table>
+    <thead>
+      <tr><th>Student</th><th>Scholarship</th><th>Date</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      {% for application in pending_applications %}
+      <tr>
+        <td>{{ application.student }}</td>
+        <td>{{ application.scholarship }}</td>
+        <td>{{ application.application_date }}</td>
+        <td>{{ application.get_status_display }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No pending applications.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
