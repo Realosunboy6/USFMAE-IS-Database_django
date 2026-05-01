@@ -1,4 +1,4 @@
-x<img width="2530" height="1494" alt="image" src="https://github.com/user-attachments/assets/f4c5957b-e72a-49f2-b94e-b3374cd4290c" />
+<img width="2530" height="1494" alt="image" src="https://github.com/user-attachments/assets/f4c5957b-e72a-49f2-b94e-b3374cd4290c" />
 
 
 # USFMAE-IS Database
