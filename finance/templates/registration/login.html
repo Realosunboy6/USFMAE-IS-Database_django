@@ -1,0 +1,28 @@
+{% extends "finance/base.html" %}
+
+{% block title %}Login | USFMAE-IS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-kicker">Secure Access</div>
+    <h2>Student Portal Login</h2>
+    <p class="page-subtitle">Sign in to view your own student finance profile, aid status, required documents, and action items.</p>
+  </div>
+</div>
+
+<section class="card">
+  {% if form.errors %}
+  <p class="badge badge-danger">Invalid username or password. Please try again.</p>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Login</button>
+  </form>
+
+  <p class="muted">Demo student login: <strong>student10</strong> / <strong>StudentPass123!</strong></p>
+  <p class="muted">Demo staff login: <strong>staff</strong> / <strong>StaffPass123!</strong></p>
+</section>
+{% endblock %}

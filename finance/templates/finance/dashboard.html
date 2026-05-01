@@ -28,6 +28,22 @@
     <div class="stat-label">Outstanding Balance</div>
     <div class="stat-value">${{ metrics.total_balance }}</div>
   </div>
+  <div class="card stat-card">
+    <div class="stat-label">Open Action Items</div>
+    <div class="stat-value">{{ metrics.open_action_items }}</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-label">Missing Documents</div>
+    <div class="stat-value">{{ metrics.missing_documents }}</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-label">Overdue Charges</div>
+    <div class="stat-value">{{ metrics.overdue_charges }}</div>
+  </div>
+  <div class="card stat-card">
+    <div class="stat-label">Due Soon</div>
+    <div class="stat-value">{{ metrics.due_soon_charges }}</div>
+  </div>
 </section>
 
 <section class="card">
@@ -50,6 +66,33 @@
         </tr>
         {% empty %}
         <tr><td colspan="4">No students have been added yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Open Student Action Items</h3>
+    <a class="button button-secondary" href="{% url 'finance:action_items' %}">Manage action items</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Student</th><th>Action</th><th>Category</th><th>Priority</th><th>Due Date</th></tr>
+      </thead>
+      <tbody>
+        {% for item in open_action_items %}
+        <tr>
+          <td><a href="{{ item.student.get_absolute_url }}">{{ item.student }}</a></td>
+          <td>{{ item.title }}</td>
+          <td><span class="badge badge-neutral">{{ item.get_category_display }}</span></td>
+          <td><span class="badge {% if item.priority == 'URGENT' %}badge-danger{% elif item.priority == 'NORMAL' %}badge-warning{% else %}badge-neutral{% endif %}">{{ item.get_priority_display }}</span></td>
+          <td>{{ item.due_date|default:"No due date" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No open action items.</td></tr>
         {% endfor %}
       </tbody>
     </table>

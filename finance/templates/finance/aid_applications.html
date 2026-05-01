@@ -45,4 +45,31 @@
     </table>
   </div>
 </section>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Tracked Aid Documents</h3>
+    <a class="button button-secondary" href="{% url 'finance:application_documents' %}">Manage documents</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Student</th><th>Scholarship</th><th>Document</th><th>Status</th><th>Received</th></tr>
+      </thead>
+      <tbody>
+        {% for document in document_report %}
+        <tr>
+          <td>{{ document.application.student }}</td>
+          <td>{{ document.application.scholarship }}</td>
+          <td>{{ document.required_document }}</td>
+          <td><span class="badge {% if document.status == 'ACCEPTED' or document.status == 'SUBMITTED' %}badge-success{% elif document.status == 'REJECTED' or document.status == 'REQUIRED' %}badge-warning{% else %}badge-neutral{% endif %}">{{ document.get_status_display }}</span></td>
+          <td>{{ document.received_date|default:"Not received" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No aid documents have been tracked.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
 {% endblock %}

@@ -1,0 +1,48 @@
+{% extends "finance/base.html" %}
+
+{% block title %}Audit Log | USFMAE-IS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-kicker">Transparency</div>
+    <h2>Audit Trail</h2>
+    <p class="page-subtitle">Recorded staff actions and lookups on student-linked records.</p>
+  </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 0.65rem; justify-content: flex-end;">
+    <a class="button button-secondary" href="{% url 'finance:dashboard' %}">Dashboard</a>
+    <a class="button button-secondary" href="{% url 'finance:audit_bundle_export' %}">Download CSV bundle (ZIP)</a>
+  </div>
+</div>
+
+<section class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>When</th>
+          <th>Actor</th>
+          <th>Action</th>
+          <th>Object</th>
+          <th>Student</th>
+          <th>Summary</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+        <tr>
+          <td>{{ entry.created_at }}</td>
+          <td>{% if entry.actor %}{{ entry.actor.get_username }}{% else %}(system/import){% endif %}</td>
+          <td><span class="badge badge-neutral">{{ entry.get_action_display }}</span></td>
+          <td>{{ entry.object_type }} #{{ entry.object_id }}</td>
+          <td>{{ entry.student|default:"—" }}</td>
+          <td>{{ entry.summary }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No audit events recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

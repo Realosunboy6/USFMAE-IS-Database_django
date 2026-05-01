@@ -4,11 +4,13 @@ from decimal import Decimal
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
+from django.utils import timezone
 
 from finance.models import (
     Administrator,
     AidApplication,
     FeeCategory,
+    ImportBatch,
     Payment,
     Scholarship,
     Student,
@@ -54,11 +56,31 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("csv_dir", type=Path, help="Directory containing exported CSV files.")
+        parser.add_argument(
+            "--source-system",
+            default="Access_CSV",
+            help="Label for the upstream system this export came from (stored on ImportBatch).",
+        )
+        parser.add_argument(
+            "--batch-label",
+            default="",
+            help="Optional short label for this import run (defaults to folder name + timestamp).",
+        )
 
     def handle(self, *args, **options):
         csv_dir = options["csv_dir"]
         if not csv_dir.exists():
             raise CommandError(f"CSV directory does not exist: {csv_dir}")
+
+        now = timezone.now()
+        label = (options["batch_label"] or "").strip() or f"{csv_dir.name} @ {now:%Y-%m-%d %H:%M:%S}"
+        self.import_batch = ImportBatch.objects.create(
+            source_system=options["source_system"],
+            label=label,
+            notes=f"CSV import from {csv_dir.resolve()}",
+        )
+        self.imported_at = now
+        self.source_system = options["source_system"]
 
         self.import_students(csv_dir / "Student.csv")
         self.import_administrators(csv_dir / "Administrator.csv")
@@ -68,7 +90,14 @@ class Command(BaseCommand):
         self.import_payments(csv_dir / "Payment.csv")
         self.import_aid_applications(csv_dir / "AidApplication.csv")
 
-        self.stdout.write(self.style.SUCCESS("Import complete."))
+        self.stdout.write(self.style.SUCCESS(f"Import complete (batch_id={self.import_batch.pk})."))
+
+    def _lineage(self):
+        return {
+            "import_batch": self.import_batch,
+            "imported_at": self.imported_at,
+            "source_system": self.source_system,
+        }
 
     def rows(self, path):
         if not path.exists():
@@ -92,6 +121,7 @@ class Command(BaseCommand):
                         Student.EnrollmentStatus.choices,
                         "enrollment status",
                     ),
+                    **self._lineage(),
                 },
             )
 
@@ -142,6 +172,7 @@ class Command(BaseCommand):
                 defaults={
                     "amount": parse_decimal(row["Amount"]),
                     "due_date": parse_date(row["DueDate"]),
+                    **self._lineage(),
                 },
             )
 
@@ -155,6 +186,7 @@ class Command(BaseCommand):
                     "amount": parse_decimal(row["Amount"]),
                     "method": normalize_choice(row["Method"], Payment.Method.choices, "payment method"),
                     "receipt_no": row["ReceiptNo"],
+                    **self._lineage(),
                 },
             )
 
@@ -169,5 +201,6 @@ class Command(BaseCommand):
                     "application_date": parse_date(row["ApplicationDate"]),
                     "docs_submitted": parse_bool(row["DocsSubmitted"]),
                     "status": normalize_choice(row["Status"], AidApplication.Status.choices, "application status"),
+                    **self._lineage(),
                 },
             )

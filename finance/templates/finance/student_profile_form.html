@@ -1,0 +1,31 @@
+{% extends "finance/base.html" %}
+
+{% block title %}{% if mode == "create" %}Create Student Profile{% else %}Edit Student Profile{% endif %} | USFMAE-IS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-kicker">Student Profile</div>
+    <h2>{% if mode == "create" %}Create Student Profile{% elif mode == "self_edit" %}Edit My Details{% else %}Edit {{ student }}{% endif %}</h2>
+    <p class="page-subtitle">Manage profile details without changing official finance records unless your role allows it.</p>
+  </div>
+  {% if student %}
+  <a class="button button-secondary" href="{{ student.get_absolute_url }}">Back to profile</a>
+  {% else %}
+  <a class="button button-secondary" href="{% url 'finance:student_list' %}">Back to students</a>
+  {% endif %}
+</div>
+
+<section class="card section-card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% if form %}
+    <h3>Official Student Fields</h3>
+    <div class="form-grid">{{ form.as_p }}</div>
+    {% endif %}
+    <h3>Profile Details</h3>
+    <div class="form-grid">{{ details_form.as_p }}</div>
+    <button type="submit">{% if mode == "create" %}Create Profile{% else %}Save Profile{% endif %}</button>
+  </form>
+</section>
+{% endblock %}

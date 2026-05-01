@@ -127,6 +127,32 @@ The database supports important student finance reports:
 - Scholarship eligibility review
 - Student financial profile
 
+## School-Readiness Direction
+
+The long-term goal is to grow USFMAE-IS from a class-project prototype into a student finance clarity system that schools could seriously evaluate. In that version, students would log in and clearly understand:
+
+- what they owe,
+- what they have paid,
+- what aid is pending,
+- which documents are missing,
+- whether they are at risk of a registration or account hold,
+- what action they need to complete next.
+
+Administrators would use the system to review balances, track missing documents, manage aid application decisions, assign action items, and generate decision-ready reports.
+
+To become usable by real schools, the project needs more than extra screens. The next major work should focus on trust and operations:
+
+- production settings with environment-based secrets,
+- stronger role-based access control,
+- audit logs for sensitive student record access and changes,
+- secure document upload and storage,
+- workflow history for aid reviews and action items,
+- school identity login such as SSO,
+- integrations with student information, billing, and financial aid systems,
+- backup, monitoring, incident-response, and data-retention procedures.
+
+A fuller school-readiness assessment is available in `outputs/school_readiness_assessment.md`.
+
 ## Sample Data
 
 The database includes sample data for demonstration. The sample records include students, fee charges, payments, scholarships, and aid applications. The student sample data uses distinct Nigerian names so the demonstration looks realistic and professional.
@@ -149,4 +175,6 @@ http://127.0.0.1:8000/
 
 ## Scope
 
-This is a class project database prototype. The aid eligibility feature uses simple rules based on GPA, enrollment status, and document submission. It is meant to support basic review and reporting, not replace a full official university financial aid system.
+This is currently a class project database prototype. The aid eligibility feature uses simple rules based on GPA, enrollment status, and document submission. It is meant to support basic review and reporting, not replace a full official university financial aid system yet.
+
+The planned direction is to make the system more useful and realistic for schools by adding stronger privacy controls, auditability, integrations, secure workflows, and production deployment practices.

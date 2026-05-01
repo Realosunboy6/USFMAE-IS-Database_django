@@ -1,0 +1,47 @@
+{% extends "finance/base.html" %}
+
+{% block title %}Action Items | USFMAE-IS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-kicker">Student To-Do List</div>
+    <h2>Action Items</h2>
+    <p class="page-subtitle">Track missing documents, balances, payment needs, and other student follow-up tasks.</p>
+  </div>
+</div>
+
+<section class="card">
+  <h3>Create Action Item</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save Action Item</button>
+  </form>
+</section>
+
+<section class="card">
+  <div class="card-header"><h3>Student Action Items</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Student</th><th>Title</th><th>Category</th><th>Priority</th><th>Due Date</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for item in action_items %}
+        <tr>
+          <td><a href="{{ item.student.get_absolute_url }}">{{ item.student }}</a></td>
+          <td>{{ item.title }}</td>
+          <td><span class="badge badge-neutral">{{ item.get_category_display }}</span></td>
+          <td><span class="badge {% if item.priority == 'URGENT' %}badge-danger{% elif item.priority == 'NORMAL' %}badge-warning{% else %}badge-neutral{% endif %}">{{ item.get_priority_display }}</span></td>
+          <td>{{ item.due_date|default:"No due date" }}</td>
+          <td><span class="badge {% if item.status == 'OPEN' %}badge-warning{% elif item.status == 'COMPLETED' %}badge-success{% else %}badge-neutral{% endif %}">{{ item.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No action items have been created.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

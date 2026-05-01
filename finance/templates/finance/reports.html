@@ -12,6 +12,84 @@
 </div>
 
 <section class="card">
+  <div class="card-header"><h3>Filter Reports</h3></div>
+  <form method="get">
+    <div class="form-grid">
+      <p>
+        <label for="report-semester">Semester</label>
+        <select id="report-semester" name="semester">
+          <option value="">All semesters</option>
+          {% for semester in semesters %}
+          <option value="{{ semester }}" {% if filters.semester == semester %}selected{% endif %}>{{ semester }}</option>
+          {% endfor %}
+        </select>
+      </p>
+      <p>
+        <label for="report-min-balance">Minimum balance</label>
+        <input id="report-min-balance" type="number" step="0.01" name="min_balance" value="{{ filters.min_balance }}" placeholder="0.00">
+      </p>
+      <p>
+        <label for="report-aid-status">Aid status</label>
+        <select id="report-aid-status" name="aid_status">
+          <option value="">Any status</option>
+          {% for value, label in aid_statuses %}
+          <option value="{{ value }}" {% if filters.aid_status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </p>
+      <p>
+        <label><input type="checkbox" name="only_overdue" value="1" {% if filters.only_overdue %}checked{% endif %}> Only overdue or due-soon balances</label>
+        <label><input type="checkbox" name="missing_documents" value="1" {% if filters.missing_documents %}checked{% endif %}> Only applications with missing documents</label>
+      </p>
+    </div>
+    <button type="submit">Apply Filters</button>
+    <a class="button button-secondary" href="{% url 'finance:reports' %}">Clear</a>
+  </form>
+</section>
+
+<section class="card">
+  <div class="card-header"><h3>Hold Risk</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Balance</th><th>Status</th><th>Message</th></tr></thead>
+      <tbody>
+        {% for row in hold_risk_report %}
+        <tr>
+          <td>{{ row.student }}</td>
+          <td class="money">${{ row.current_balance }}</td>
+          <td><span class="badge {{ row.hold_risk_badge }}">{{ row.hold_risk_label }}</span></td>
+          <td>{{ row.hold_risk_message }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No students currently flagged for hold risk.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-header"><h3>Overdue Charges</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Fee</th><th>Amount</th><th>Due Date</th></tr></thead>
+      <tbody>
+        {% for charge in overdue_charges %}
+        <tr>
+          <td>{{ charge.student }}</td>
+          <td>{{ charge.fee }}</td>
+          <td class="money">${{ charge.amount }}</td>
+          <td>{{ charge.due_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No overdue charges.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
   <div class="card-header"><h3>Balance Report</h3></div>
   <div class="table-wrap">
     <table>
@@ -48,6 +126,50 @@
         </tr>
         {% empty %}
         <tr><td colspan="5">No payments are available for reporting.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-header"><h3>Open Action Items</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Action</th><th>Category</th><th>Priority</th><th>Due Date</th></tr></thead>
+      <tbody>
+        {% for item in action_items %}
+        <tr>
+          <td>{{ item.student }}</td>
+          <td>{{ item.title }}</td>
+          <td><span class="badge badge-neutral">{{ item.get_category_display }}</span></td>
+          <td><span class="badge {% if item.priority == 'URGENT' %}badge-danger{% elif item.priority == 'NORMAL' %}badge-warning{% else %}badge-neutral{% endif %}">{{ item.get_priority_display }}</span></td>
+          <td>{{ item.due_date|default:"No due date" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No open action items are available for reporting.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-header"><h3>Aid Document Report</h3></div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Student</th><th>Scholarship</th><th>Document</th><th>Status</th><th>Received</th></tr></thead>
+      <tbody>
+        {% for document in document_report %}
+        <tr>
+          <td>{{ document.application.student }}</td>
+          <td>{{ document.application.scholarship }}</td>
+          <td>{{ document.required_document }}</td>
+          <td><span class="badge {% if document.status == 'ACCEPTED' or document.status == 'SUBMITTED' %}badge-success{% elif document.status == 'REJECTED' or document.status == 'REQUIRED' %}badge-warning{% else %}badge-neutral{% endif %}">{{ document.get_status_display }}</span></td>
+          <td>{{ document.received_date|default:"Not received" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No aid documents are available for reporting.</td></tr>
         {% endfor %}
       </tbody>
     </table>

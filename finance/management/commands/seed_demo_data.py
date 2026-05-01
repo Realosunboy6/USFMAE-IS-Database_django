@@ -2,13 +2,21 @@ from datetime import date
 from decimal import Decimal
 from random import Random
 
+from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
+from django.utils import timezone
+
+from finance.rbac import GROUP_SUPERVISOR, setup_finance_groups
 
 from finance.models import (
+    ActionItem,
     Administrator,
     AidApplication,
+    ApplicationDocument,
     FeeCategory,
+    ImportBatch,
     Payment,
+    RequiredDocument,
     Scholarship,
     Student,
     StudentCharge,
@@ -19,6 +27,33 @@ class Command(BaseCommand):
     help = "Seed the USFMAE-IS database with small demo data for local testing."
 
     def handle(self, *args, **options):
+        staff_user, _ = User.objects.update_or_create(
+            username="staff",
+            defaults={
+                "first_name": "Finance",
+                "last_name": "Staff",
+                "email": "staff@example.edu",
+                "is_staff": True,
+                "is_superuser": False,
+            },
+        )
+        staff_user.set_password("StaffPass123!")
+        staff_user.save()
+        setup_finance_groups()
+        staff_user.groups.set([Group.objects.get(name=GROUP_SUPERVISOR)])
+        demo_batch = ImportBatch.objects.filter(source_system="USFMAE_IS_DEMO").order_by("pk").first()
+        if demo_batch is None:
+            demo_batch = ImportBatch.objects.create(
+                source_system="USFMAE_IS_DEMO",
+                label="USFMAE-IS classroom demo",
+                notes="Synthetic records produced by seed_demo_data.",
+            )
+        demo_track = {
+            "import_batch": demo_batch,
+            "imported_at": timezone.now(),
+            "source_system": "USFMAE_IS_DEMO",
+        }
+
         students = [
             {
                 "student_id": 1,
@@ -49,7 +84,20 @@ class Command(BaseCommand):
             },
         ]
         for row in students:
-            Student.objects.update_or_create(student_id=row["student_id"], defaults=row)
+            username = f"student{row['student_id']}"
+            user, _ = User.objects.update_or_create(
+                username=username,
+                defaults={
+                    "first_name": row["first_name"],
+                    "last_name": row["last_name"],
+                    "email": row["email"],
+                    "is_staff": False,
+                    "is_superuser": False,
+                },
+            )
+            user.set_password("StudentPass123!")
+            user.save()
+            Student.objects.update_or_create(student_id=row["student_id"], defaults={**row, "user": user, **demo_track})
 
         admin, _ = Administrator.objects.update_or_create(
             admin_id=1,
@@ -94,25 +142,53 @@ class Command(BaseCommand):
             },
         )
 
+        fafsa_doc, _ = RequiredDocument.objects.update_or_create(
+            document_id=1,
+            defaults={
+                "document_name": "FAFSA Confirmation",
+                "description": "Confirmation that the student completed the financial aid application.",
+                "applies_to_award_type": Scholarship.AwardType.NEED,
+                "is_active": True,
+            },
+        )
+        income_doc, _ = RequiredDocument.objects.update_or_create(
+            document_id=2,
+            defaults={
+                "document_name": "Income Verification",
+                "description": "Income or sponsor documentation used for need-based aid review.",
+                "applies_to_award_type": Scholarship.AwardType.NEED,
+                "is_active": True,
+            },
+        )
+        transcript_doc, _ = RequiredDocument.objects.update_or_create(
+            document_id=3,
+            defaults={
+                "document_name": "Academic Transcript",
+                "description": "Transcript used to verify GPA and academic eligibility.",
+                "applies_to_award_type": Scholarship.AwardType.MERIT,
+                "is_active": True,
+            },
+        )
+
         StudentCharge.objects.update_or_create(
             student_id=1,
             fee=tuition,
-            defaults={"amount": Decimal("4500.00"), "due_date": date(2026, 2, 15)},
+            defaults={"amount": Decimal("4500.00"), "due_date": date(2026, 2, 15), **demo_track},
         )
         StudentCharge.objects.update_or_create(
             student_id=1,
             fee=housing,
-            defaults={"amount": Decimal("2200.00"), "due_date": date(2026, 2, 15)},
+            defaults={"amount": Decimal("2200.00"), "due_date": date(2026, 2, 15), **demo_track},
         )
         StudentCharge.objects.update_or_create(
             student_id=2,
             fee=tuition,
-            defaults={"amount": Decimal("4500.00"), "due_date": date(2026, 2, 15)},
+            defaults={"amount": Decimal("4500.00"), "due_date": date(2026, 2, 15), **demo_track},
         )
         StudentCharge.objects.update_or_create(
             student_id=3,
             fee=tuition,
-            defaults={"amount": Decimal("2400.00"), "due_date": date(2026, 2, 15)},
+            defaults={"amount": Decimal("2400.00"), "due_date": date(2026, 2, 15), **demo_track},
         )
 
         Payment.objects.update_or_create(
@@ -123,6 +199,7 @@ class Command(BaseCommand):
                 "amount": Decimal("3000.00"),
                 "method": Payment.Method.CARD,
                 "receipt_no": "R-1001",
+                **demo_track,
             },
         )
         Payment.objects.update_or_create(
@@ -133,10 +210,11 @@ class Command(BaseCommand):
                 "amount": Decimal("1500.00"),
                 "method": Payment.Method.BANK_TRANSFER,
                 "receipt_no": "R-1002",
+                **demo_track,
             },
         )
 
-        AidApplication.objects.update_or_create(
+        application_one, _ = AidApplication.objects.update_or_create(
             application_id=1,
             defaults={
                 "student_id": 1,
@@ -145,9 +223,10 @@ class Command(BaseCommand):
                 "application_date": date(2026, 1, 18),
                 "docs_submitted": True,
                 "status": AidApplication.Status.PENDING,
+                **demo_track,
             },
         )
-        AidApplication.objects.update_or_create(
+        application_two, _ = AidApplication.objects.update_or_create(
             application_id=2,
             defaults={
                 "student_id": 3,
@@ -156,6 +235,55 @@ class Command(BaseCommand):
                 "application_date": date(2026, 1, 22),
                 "docs_submitted": False,
                 "status": AidApplication.Status.NEEDS_DOCUMENTS,
+                **demo_track,
+            },
+        )
+
+        ApplicationDocument.objects.update_or_create(
+            application=application_one,
+            required_document=transcript_doc,
+            defaults={
+                "status": ApplicationDocument.Status.ACCEPTED,
+                "received_date": date(2026, 1, 18),
+                "notes": "Transcript confirms GPA requirement.",
+                **demo_track,
+            },
+        )
+        ApplicationDocument.objects.update_or_create(
+            application=application_two,
+            required_document=fafsa_doc,
+            defaults={
+                "status": ApplicationDocument.Status.REQUIRED,
+                "received_date": None,
+                "notes": "Student still needs to upload aid confirmation.",
+                **demo_track,
+            },
+        )
+
+        ActionItem.objects.update_or_create(
+            action_id=1,
+            defaults={
+                "student_id": 1,
+                "title": "Review remaining spring balance",
+                "description": "Student has charges and should confirm payment plan or additional aid.",
+                "category": ActionItem.Category.BALANCE,
+                "priority": ActionItem.Priority.NORMAL,
+                "due_date": date(2026, 2, 10),
+                "status": ActionItem.Status.OPEN,
+                **demo_track,
+            },
+        )
+        ActionItem.objects.update_or_create(
+            action_id=2,
+            defaults={
+                "student_id": 3,
+                "title": "Submit missing FAFSA confirmation",
+                "description": "Aid review cannot be completed until required documentation is received.",
+                "category": ActionItem.Category.DOCUMENT,
+                "priority": ActionItem.Priority.URGENT,
+                "due_date": date(2026, 1, 30),
+                "status": ActionItem.Status.OPEN,
+                **demo_track,
             },
         )
 
@@ -388,15 +516,30 @@ class Command(BaseCommand):
             student_id = 10 + index
             first_name = first_names[index]
             last_name = last_names[index]
-            student, _ = Student.objects.update_or_create(
-                student_id=student_id,
+            email = f"{first_name.lower()}.{last_name.lower()}{student_id}@example.edu"
+            user, _ = User.objects.update_or_create(
+                username=f"student{student_id}",
                 defaults={
                     "first_name": first_name,
                     "last_name": last_name,
-                    "email": f"{first_name.lower()}.{last_name.lower()}{student_id}@example.edu",
+                    "email": email,
+                    "is_staff": False,
+                    "is_superuser": False,
+                },
+            )
+            user.set_password("StudentPass123!")
+            user.save()
+            student, _ = Student.objects.update_or_create(
+                student_id=student_id,
+                defaults={
+                    "user": user,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "email": email,
                     "major": majors[index % len(majors)],
                     "gpa": Decimal(f"{rng.uniform(2.10, 4.00):.2f}"),
                     "enrollment_status": statuses[index % len(statuses)],
+                    **demo_track,
                 },
             )
 
@@ -404,14 +547,14 @@ class Command(BaseCommand):
             StudentCharge.objects.update_or_create(
                 student=student,
                 fee=tuition,
-                defaults={"amount": tuition_amount, "due_date": date(2026, 2, 15)},
+                defaults={"amount": tuition_amount, "due_date": date(2026, 2, 15), **demo_track},
             )
 
             if index % 4 == 0:
                 StudentCharge.objects.update_or_create(
                     student=student,
                     fee=housing,
-                    defaults={"amount": Decimal("2200.00"), "due_date": date(2026, 2, 15)},
+                    defaults={"amount": Decimal("2200.00"), "due_date": date(2026, 2, 15), **demo_track},
                 )
 
             if index % 2 == 0:
@@ -423,12 +566,13 @@ class Command(BaseCommand):
                         "amount": Decimal("1500.00") + Decimal(index % 5) * Decimal("250.00"),
                         "method": Payment.Method.BANK_TRANSFER if index % 3 == 0 else Payment.Method.CARD,
                         "receipt_no": f"R-NG-{student_id:03d}",
+                        **demo_track,
                     },
                 )
 
             if index % 3 == 0:
                 scholarship = merit if index % 2 == 0 else access
-                AidApplication.objects.update_or_create(
+                application, _ = AidApplication.objects.update_or_create(
                     application_id=2000 + index,
                     defaults={
                         "student": student,
@@ -437,6 +581,38 @@ class Command(BaseCommand):
                         "application_date": date(2026, 1, 5 + (index % 20)),
                         "docs_submitted": index % 6 != 3,
                         "status": AidApplication.Status.PENDING if index % 6 != 3 else AidApplication.Status.NEEDS_DOCUMENTS,
+                        **demo_track,
+                    },
+                )
+                required_document = transcript_doc if scholarship == merit else income_doc
+                document_status = (
+                    ApplicationDocument.Status.SUBMITTED
+                    if index % 6 != 3
+                    else ApplicationDocument.Status.REQUIRED
+                )
+                ApplicationDocument.objects.update_or_create(
+                    application=application,
+                    required_document=required_document,
+                    defaults={
+                        "status": document_status,
+                        "received_date": date(2026, 1, 6 + (index % 18)) if document_status == ApplicationDocument.Status.SUBMITTED else None,
+                        "notes": "Demo document record for aid review.",
+                        **demo_track,
+                    },
+                )
+
+            if index % 5 == 0:
+                ActionItem.objects.update_or_create(
+                    action_id=1000 + index,
+                    defaults={
+                        "student": student,
+                        "title": "Follow up on student account",
+                        "description": "Review balance, payment status, or aid requirements before the deadline.",
+                        "category": ActionItem.Category.AID if index % 10 == 0 else ActionItem.Category.BALANCE,
+                        "priority": ActionItem.Priority.URGENT if index % 15 == 0 else ActionItem.Priority.NORMAL,
+                        "due_date": date(2026, 2, 1 + (index % 20)),
+                        "status": ActionItem.Status.OPEN,
+                        **demo_track,
                     },
                 )
 

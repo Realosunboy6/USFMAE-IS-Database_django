@@ -1,0 +1,25 @@
+{% extends "finance/base.html" %}
+
+{% block title %}{% if mode == "review" %}Review Document{% else %}Upload Document{% endif %} | USFMAE-IS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-kicker">Student Documents</div>
+    <h2>{% if mode == "review" %}Review Document{% else %}Upload Document{% endif %}</h2>
+    <p class="page-subtitle">{{ student }} · documents are private student records and require role-based access.</p>
+  </div>
+  <a class="button button-secondary" href="{{ student.get_absolute_url }}">Back to profile</a>
+</div>
+
+<section class="card section-card">
+  {% if document %}
+  <p class="muted">Reviewing: <strong>{{ document.document_name }}</strong></p>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-grid">{{ form.as_p }}</div>
+    <button type="submit">{% if mode == "review" %}Save Review{% else %}Upload Document{% endif %}</button>
+  </form>
+</section>
+{% endblock %}

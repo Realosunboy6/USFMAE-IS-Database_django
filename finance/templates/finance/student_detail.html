@@ -1,35 +1,142 @@
 {% extends "finance/base.html" %}
+{% load finance_auth %}
 
 {% block title %}{{ student }} | USFMAE-IS{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
+<section class="notice-card" role="note">
+  <span class="notice-mark">i</span>
+  <p><strong>Clarity notice.</strong> {{ data_snapshot_notice }}</p>
+</section>
+
+{% finance_can 'manage_action_items' as can_manage_actions %}
+{% finance_can 'view_student_directory' as can_manage_profiles %}
+
+<div class="detail-layout">
+<section class="student-hero">
+  <div class="student-title">
     <div class="page-kicker">Student Profile</div>
     <h2>{{ student }}</h2>
-    <p class="page-subtitle">Financial profile, charges, payments, balance, and aid activity.</p>
+    <p class="page-subtitle">Financial profile, charges, payments, balance, aid activity, and next actions.</p>
+    <div class="student-meta">
+      <span>{{ student.get_enrollment_status_display }}</span>
+      <span>{{ student.major }}</span>
+      <span>GPA {{ student.gpa }}</span>
+    </div>
   </div>
-  <a class="button button-secondary" href="{% url 'finance:student_list' %}">Back to students</a>
-</div>
-
-<section class="grid">
-  <div class="card stat-card"><div class="stat-label">Total Charges</div><div class="stat-value">${{ summary.total_charges }}</div></div>
-  <div class="card stat-card"><div class="stat-label">Total Payments</div><div class="stat-value">${{ summary.total_payments }}</div></div>
-  <div class="card stat-card"><div class="stat-label">Current Balance</div><div class="stat-value">${{ summary.current_balance }}</div></div>
+  {% if show_back_to_students %}
+  <div style="display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:flex-end;">
+    <a class="button button-secondary" href="{% url 'finance:student_list' %}">Back to students</a>
+    {% if can_manage_profiles %}
+    <a class="button" href="{% url 'finance:student_edit' student.student_id %}">Edit profile</a>
+    {% endif %}
+  </div>
+  {% else %}
+  <a class="button" href="{% url 'finance:my_profile_edit' %}">Edit my details</a>
+  {% endif %}
 </section>
 
-<section class="card">
-  <h3>Profile</h3>
+<section class="stat-grid" aria-label="Student finance summary">
+  <div class="card student-stat">
+    <div class="stat-label">Total Charges</div>
+    <div class="stat-value">${{ summary.total_charges }}</div>
+    <div class="stat-caption">Charges currently represented in the clarity dataset.</div>
+  </div>
+  <div class="card student-stat">
+    <div class="stat-label">Total Payments</div>
+    <div class="stat-value">${{ summary.total_payments }}</div>
+    <div class="stat-caption">Recorded payments linked to this student profile.</div>
+  </div>
+  <div class="card student-stat">
+    <div class="stat-label">Current Balance</div>
+    <div class="stat-value">${{ summary.current_balance }}</div>
+    <div class="stat-caption">Estimated balance before official ledger reconciliation.</div>
+  </div>
+  <div class="card student-stat risk-card">
+    <div class="stat-label">Hold Risk</div>
+    <div class="stat-value"><span class="badge {{ summary.hold_risk_badge }}">{{ summary.hold_risk_label }}</span></div>
+    <p class="stat-caption">{{ summary.hold_risk_message }}</p>
+  </div>
+</section>
+
+<section class="card section-card">
+  <div class="section-title-row">
+    <h3>Profile</h3>
+  </div>
   <div class="profile-list">
-    <div class="profile-item"><span>Email</span><strong>{{ student.email }}</strong></div>
-    <div class="profile-item"><span>Major</span><strong>{{ student.major }}</strong></div>
-    <div class="profile-item"><span>GPA</span><strong>{{ student.gpa }}</strong></div>
-    <div class="profile-item"><span>Enrollment</span><strong>{{ student.get_enrollment_status_display }}</strong></div>
+    <div class="data-panel"><span>Preferred Name</span><strong>{{ profile_details.preferred_name|default:"Not provided" }}</strong></div>
+    <div class="data-panel data-panel--email"><span>Email</span><strong title="{{ student.email }}">{{ student.email }}</strong></div>
+    <div class="data-panel"><span>Phone</span><strong>{{ profile_details.phone|default:"Not provided" }}</strong></div>
+    <div class="data-panel"><span>Major</span><strong>{{ student.major }}</strong></div>
+    <div class="data-panel"><span>GPA</span><strong>{{ student.gpa }}</strong></div>
+    <div class="data-panel"><span>Enrollment</span><strong>{{ student.get_enrollment_status_display }}</strong></div>
+    <div class="data-panel"><span>Class Level</span><strong>{{ profile_details.get_class_level_display|default:"Not provided" }}</strong></div>
+    <div class="data-panel"><span>Expected Graduation</span><strong>{{ profile_details.expected_graduation_term|default:"Not provided" }}</strong></div>
+    <div class="data-panel"><span>Advisor</span><strong>{{ profile_details.advisor_name|default:"Not assigned" }}</strong></div>
+    <div class="data-panel"><span>Emergency Contact</span><strong>{{ profile_details.emergency_contact_name|default:"Not provided" }}{% if profile_details.emergency_contact_phone %} · {{ profile_details.emergency_contact_phone }}{% endif %}</strong></div>
   </div>
 </section>
 
-<section class="card">
-  <div class="card-header"><h3>Charges</h3></div>
+<section class="card section-card">
+  <div class="section-title-row">
+    <h3>Documents</h3>
+    <a class="button" href="{% url 'finance:student_document_upload' student.student_id %}">Upload document</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Document</th><th>Type</th><th>Status</th><th>Uploaded</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for document in uploaded_documents %}
+        <tr>
+          <td>{{ document.document_name }}</td>
+          <td>{{ document.get_document_type_display }}</td>
+          <td><span class="badge {% if document.status == 'ACCEPTED' %}badge-success{% elif document.status == 'REJECTED' %}badge-danger{% else %}badge-neutral{% endif %}">{{ document.get_status_display }}</span></td>
+          <td>{{ document.uploaded_at }}</td>
+          <td>
+            <a href="{% url 'finance:student_document_download' document.id %}">Download</a>
+            {% if can_manage_profiles %}
+              · <a href="{% url 'finance:student_document_review' document.id %}">Review</a>
+              · <form action="{% url 'finance:student_document_archive' document.id %}" method="post" style="display:inline">{% csrf_token %}<button class="button button-secondary" type="submit">Archive</button></form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No uploaded documents for this profile.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card section-card">
+  <div class="section-title-row">
+    <h3>Action Items</h3>
+    {% if show_back_to_students and can_manage_actions %}
+    <a class="button button-secondary" href="{% url 'finance:action_items' %}">Manage items</a>
+    {% endif %}
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Action</th><th>Category</th><th>Priority</th><th>Due Date</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for item in action_items %}
+        <tr>
+          <td>{{ item.title }}</td>
+          <td><span class="badge badge-neutral">{{ item.get_category_display }}</span></td>
+          <td><span class="badge {% if item.priority == 'URGENT' %}badge-danger{% elif item.priority == 'NORMAL' %}badge-warning{% else %}badge-neutral{% endif %}">{{ item.get_priority_display }}</span></td>
+          <td>{{ item.due_date|default:"No due date" }}</td>
+          <td><span class="badge {% if item.status == 'OPEN' %}badge-warning{% elif item.status == 'COMPLETED' %}badge-success{% else %}badge-neutral{% endif %}">{{ item.get_status_display }}</span></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No action items for this student.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card section-card">
+  <div class="section-title-row"><h3>Charges</h3></div>
   <div class="table-wrap">
     <table>
       <thead><tr><th>Fee</th><th>Semester</th><th>Amount</th><th>Due Date</th></tr></thead>
@@ -49,8 +156,8 @@
   </div>
 </section>
 
-<section class="card">
-  <div class="card-header"><h3>Payment History</h3></div>
+<section class="card section-card">
+  <div class="section-title-row"><h3>Payment History</h3></div>
   <div class="table-wrap">
     <table>
       <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Receipt</th></tr></thead>
@@ -70,25 +177,63 @@
   </div>
 </section>
 
-<section class="card">
-  <div class="card-header"><h3>Aid Applications</h3></div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Scholarship</th><th>Date</th><th>Documents</th><th>Status</th><th>Eligible?</th></tr></thead>
-      <tbody>
-        {% for application in applications %}
-        <tr>
-          <td>{{ application.scholarship }}</td>
-          <td>{{ application.application_date }}</td>
-          <td><span class="badge {% if application.docs_submitted %}badge-success{% else %}badge-warning{% endif %}">{{ application.docs_submitted|yesno:"Submitted,Missing" }}</span></td>
-          <td><span class="badge badge-neutral">{{ application.get_status_display }}</span></td>
-          <td><span class="badge {% if application.meets_basic_eligibility %}badge-success{% else %}badge-danger{% endif %}">{{ application.meets_basic_eligibility|yesno:"Yes,No" }}</span></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5">No aid applications recorded.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<section class="card section-card">
+  <div class="section-title-row"><h3>Aid Applications</h3></div>
+  {% for application in applications %}
+  <div class="aid-application">
+    <div class="card-header">
+      <h3>{{ application.scholarship }}</h3>
+      <span class="badge {% if application.status == 'APPROVED' %}badge-success{% elif application.status == 'DENIED' %}badge-danger{% elif application.status == 'NEEDS_DOCUMENTS' %}badge-warning{% else %}badge-neutral{% endif %}">{{ application.get_status_display }}</span>
+    </div>
+
+    <p class="muted">Application date: {{ application.application_date }}</p>
+
+    <h4 class="subsection-heading">Status Timeline</h4>
+    <ol class="timeline-list">
+      {% for stage in application.status_timeline %}
+      <li><span class="badge {% if stage.current %}badge-warning{% elif stage.completed %}badge-success{% else %}badge-neutral{% endif %}">{{ stage.label }}</span></li>
+      {% endfor %}
+    </ol>
+
+    <h4 class="subsection-heading">Eligibility Check</h4>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Rule</th><th>Required</th><th>Your Status</th><th>Result</th></tr></thead>
+        <tbody>
+          {% for rule in application.eligibility_rules %}
+          <tr>
+            <td>{{ rule.label }}</td>
+            <td>{{ rule.expected }}</td>
+            <td>{{ rule.actual }}</td>
+            <td><span class="badge {% if rule.passed %}badge-success{% else %}badge-warning{% endif %}">{{ rule.passed|yesno:"Pass,Action Needed" }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <h4 class="subsection-heading">Required Documents</h4>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Document</th><th>Status</th><th>Received</th><th>Notes</th></tr></thead>
+        <tbody>
+          {% for document in application.documents.all %}
+          <tr>
+            <td>{{ document.required_document }}</td>
+            <td><span class="badge {% if document.status == 'ACCEPTED' or document.status == 'SUBMITTED' %}badge-success{% elif document.status == 'REJECTED' or document.status == 'REQUIRED' %}badge-warning{% else %}badge-neutral{% endif %}">{{ document.get_status_display }}</span></td>
+            <td>{{ document.received_date|default:"Not received" }}</td>
+            <td>{{ document.notes|default:"" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4">No required documents recorded for this application.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
+  {% empty %}
+  <p>No aid applications recorded.</p>
+  {% endfor %}
 </section>
+</div>
 {% endblock %}

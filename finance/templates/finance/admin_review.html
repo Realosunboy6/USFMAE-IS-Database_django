@@ -1,8 +1,10 @@
 {% extends "finance/base.html" %}
+{% load finance_auth %}
 
 {% block title %}Review Aid Application | USFMAE-IS{% endblock %}
 
 {% block content %}
+{% finance_can 'manage_aid' as can_manage_aid %}
 <div class="page-header">
   <div>
     <div class="page-kicker">Administrator Review</div>
@@ -25,11 +27,46 @@
 </section>
 
 <section class="card">
+  <div class="card-header">
+    <h3>Required Documents</h3>
+    {% if can_manage_aid %}
+    <a class="button button-secondary" href="{% url 'finance:application_documents' %}">Manage documents</a>
+    {% endif %}
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Document</th><th>Status</th><th>Received</th><th>Notes</th></tr></thead>
+      <tbody>
+        {% for document in documents %}
+        <tr>
+          <td>{{ document.required_document }}</td>
+          <td><span class="badge {% if document.status == 'ACCEPTED' or document.status == 'SUBMITTED' %}badge-success{% elif document.status == 'REJECTED' or document.status == 'REQUIRED' %}badge-warning{% else %}badge-neutral{% endif %}">{{ document.get_status_display }}</span></td>
+          <td>{{ document.received_date|default:"Not received" }}</td>
+          <td>{{ document.notes|default:"" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No required documents are attached to this application.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h3>Add Checklist Item</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ document_form.as_p }}
+    <button type="submit" name="save_document">Save Document Status</button>
+  </form>
+</section>
+
+<section class="card">
   <h3>Update Review</h3>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Save Review</button>
+    <button type="submit" name="save_review">Save Review</button>
   </form>
 </section>
 {% endblock %}
