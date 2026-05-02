@@ -354,4 +354,4 @@ On Windows, activate with:
 
 ## License / Use
 
-This repository is currently a student/class project prototype. Do not use it with real student data without production security hardening, institutional approval, and compliance review.
+This repository is currently a student/class project prototype by (Ibrahim, Nate and Ethan). Do not use it with real student data without production security hardening, institutional approval, and compliance review.
